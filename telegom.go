@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"gitlab.com/vicmanbrile/telegram-golang-bot/api"
@@ -30,6 +30,14 @@ func InitTeleGom(TelegramTKN string) *TeleGom {
 	}
 }
 
+func (tg *TeleGom) Listen() {
+
+	result := tg.Get("getMe")
+
+	fmt.Println(result.Result.FirstName)
+
+}
+
 func (tg *TeleGom) NewPendient(command string, cp *CommandsPending) {
 	tg.Pendients[command] = *cp
 }
@@ -41,39 +49,38 @@ func (tg *TeleGom) CancelForCommand(key string) {
 	}
 }
 
-func (tg *TeleGom) Get() {
-	AvailableMethod := "getMe"
+func (tg *TeleGom) Get(AvailableMethod string) *api.Bot {
 
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s", tg.TelegramToken, AvailableMethod)
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
+	var err error
 
-	if err != nil {
+	// Http Cliend to String
+	Client := &http.Client{}
+
+	request, err := http.NewRequest("GET", url, nil)
+	if err != err {
 		fmt.Println(err)
-		return
 	}
 
-	res, err := client.Do(req)
-	if err != nil {
+	response, err := Client.Do(request)
+	if err != err {
 		fmt.Println(err)
-		return
 	}
-	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
+	defer response.Body.Close()
+
+	Result, err := io.ReadAll(response.Body)
+	if err != err {
 		fmt.Println(err)
-		return
 	}
+	// Close Http Client
 
 	var jsonResp api.Bot
+	err = json.Unmarshal(Result, &jsonResp)
 
-	err = json.Unmarshal(body, &jsonResp)
-	if err != nil {
+	if err != err {
 		fmt.Println(err)
-		return
 	}
-
-	fmt.Println(string(body))
+	return &jsonResp
 }

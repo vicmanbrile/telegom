@@ -19,4 +19,25 @@ type (
 		IsPremium               bool   `json:"is_premium"`
 		AddToAttachmentMenu     bool   `json:"added_to_attachment_menu"`
 	}
+
+	Message struct {
+		ChatID                string          `json:"chat_id"`
+		Text                  string          `json:"text"`
+		ParseMode             string          `json:"parse_mode"`
+		Entities              []MessageEntity `json:"entities"`
+		DisableWebPagePreview bool            `json:"disable_web_page_preview"`
+		DisableNotification   bool            `json:"disable_notification"`
+		ProtectNotification   bool            `json:"protect_notification"`
+		ReplyToMessageID      bool            `json:"reply_to_message_id"`
+		// Reply Markup (( Pendient ))
+	}
+
+	MessageEntity struct {
+		Type     string `json:"type"`
+		Offset   int    `json:"offset"`
+		Length   int    `json:"length"`
+		URL      string `json:"url"`
+		User     User   `json:"user"`
+		Language string `json:"language"`
+	}
 )
