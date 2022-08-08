@@ -6,6 +6,21 @@ type (
 		Result User `json:"result"`
 	}
 
+	Updates struct {
+		Ok     bool     `json:"ok"`
+		Update []Update `json:"result"`
+	}
+
+	Update struct {
+		UpdateID          int         `json:"update_id"`
+		Message           Message     `json:"Message"`
+		EditedMessage     Message     `json:"edited_message"`
+		ChannelPost       Message     `json:"channel_post"`
+		EditedChannelPost Message     `json:"edited_channel_post"`
+		InlineQuery       InlineQuery `json:"inline_query"`
+		// ChosenInlineResult
+	}
+
 	User struct {
 		ID                      int    `json:"id"`
 		IsBot                   bool   `json:"is_bot"`
@@ -39,5 +54,48 @@ type (
 		URL      string `json:"url"`
 		User     User   `json:"user"`
 		Language string `json:"language"`
+	}
+
+	InlineQuery struct {
+		ID       string   `json:"id"`
+		From     User     `json:"from"`
+		Query    string   `json:"query"`
+		Offset   string   `json:"offset"`
+		ChatType string   `json:"chat_type"`
+		Location Location `json:"location"`
+	}
+
+	ChosenlnLineResult struct {
+		ResultID        string   `json:"result_id"`
+		From            User     `json:"from"`
+		Location        Location `json:"location"`
+		InlineMessageID string   `json:"inline_message_id"`
+		Query           string   `json:"query"`
+	}
+
+	CallbackQuery struct {
+		ID               string  `json:"id"`
+		From             User    `json:"from"`
+		Message          Message `json:"message"`
+		InLineMesssageID string  `json:"inline_messsage_id"`
+		ChatInstance     string  `json:"chat_instance"`
+		Data             string  `json:"data"`
+		GameShortName    string  `json:"game_short_name"`
+	}
+
+	ShippingQuery struct {
+		ID   string `json:"id"`
+		From User   `json:"from"`
+	}
+
+	// Types Sending
+
+	Location struct {
+		Longitude            float64 `json:"longitude"`
+		Latitude             float64 `json:"latitude"`
+		HorizontalAccuracy   float64 `json:"horizontal_accuracy"`
+		LivePeriod           int     `json:"live_period"`
+		Heading              int     `json:"heading"`
+		ProximityAlertRadius int     `json:"proximity_alert_radius"`
 	}
 )
