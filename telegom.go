@@ -32,9 +32,22 @@ func InitTeleGom(TelegramTKN string) *TeleGom {
 
 func (tg *TeleGom) Listen() {
 
-	result := tg.Get("getMe")
+	var offSet int
+	var status bool
 
-	fmt.Println(result.Result.FirstName)
+	status = true
+
+	for status {
+		// Robot method ("getMe")
+		result := tg.Get("getUpdates", fmt.Sprintf("?offset=%d", offSet))
+
+		for _, v := range result.Update {
+			offSet = v.UpdateID + 1
+			fmt.Printf("Offset: %d\n", offSet)
+			SendMessage(v)
+		}
+
+	}
 
 }
 
@@ -42,18 +55,16 @@ func (tg *TeleGom) NewPendient(command string, cp *CommandsPending) {
 	tg.Pendients[command] = *cp
 }
 
-func (tg *TeleGom) CancelForCommand(key string) {
+func (tg *TeleGom) CancelPendient(key string) {
 	_, ok := tg.Pendients[key]
 	if ok {
 		delete(tg.Pendients, key)
 	}
 }
 
-func (tg *TeleGom) Get(AvailableMethod string) *api.Bot {
+func (tg *TeleGom) Get(AvailableMethod string, parameter string) *api.Updates {
 
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s", tg.TelegramToken, AvailableMethod)
-
-	var err error
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s%s", tg.TelegramToken, AvailableMethod, parameter)
 
 	// Http Cliend to String
 	Client := &http.Client{}
@@ -76,11 +87,15 @@ func (tg *TeleGom) Get(AvailableMethod string) *api.Bot {
 	}
 	// Close Http Client
 
-	var jsonResp api.Bot
+	var jsonResp api.Updates
 	err = json.Unmarshal(Result, &jsonResp)
 
 	if err != err {
 		fmt.Println(err)
 	}
 	return &jsonResp
+}
+
+func SendMessage(update api.Update) {
+	fmt.Println(update.Message.ReplyToMessageID)
 }
