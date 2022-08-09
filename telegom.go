@@ -16,17 +16,20 @@ import (
 type CommandsPending struct {
 	Steps   int
 	Process int
+	Data    map[string]string
 }
 
 type TeleGom struct {
-	TelegramToken string
-	Pendients     map[string]CommandsPending
+	telegramToken string
+	pendients     map[string]CommandsPending
+	handlers      map[string]func(ServerResponse, *api.Update)
 }
 
 func InitTeleGom(TelegramTKN string) *TeleGom {
 	return &TeleGom{
-		TelegramToken: TelegramTKN,
-		Pendients:     map[string]CommandsPending{},
+		telegramToken: TelegramTKN,
+		pendients:     map[string]CommandsPending{},
+		handlers:      map[string]func(ServerResponse, *api.Update){},
 	}
 }
 
@@ -39,32 +42,32 @@ func (tg *TeleGom) Listen() {
 
 	for status {
 		// Robot method ("getMe")
-		result := tg.Get("getUpdates", fmt.Sprintf("?offset=%d", offSet))
+		result := tg.get("getUpdates", fmt.Sprintf("?offset=%d", offSet))
 
 		for _, v := range result.Update {
 			offSet = v.UpdateID + 1
 			fmt.Printf("Offset: %d\n", offSet)
-			SendMessage(v)
+			tg.SendMessage(v)
 		}
 
 	}
 
 }
 
-func (tg *TeleGom) NewPendient(command string, cp *CommandsPending) {
-	tg.Pendients[command] = *cp
+func (tg *TeleGom) newPendient(command string, cp *CommandsPending) {
+	tg.pendients[command] = *cp
 }
 
-func (tg *TeleGom) CancelPendient(key string) {
-	_, ok := tg.Pendients[key]
+func (tg *TeleGom) cancelPendient(key string) {
+	_, ok := tg.pendients[key]
 	if ok {
-		delete(tg.Pendients, key)
+		delete(tg.pendients, key)
 	}
 }
 
-func (tg *TeleGom) Get(AvailableMethod string, parameter string) *api.Updates {
+func (tg *TeleGom) get(AvailableMethod string, parameter string) *api.Updates {
 
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s%s", tg.TelegramToken, AvailableMethod, parameter)
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s%s", tg.telegramToken, AvailableMethod, parameter)
 
 	// Http Cliend to String
 	Client := &http.Client{}
@@ -96,6 +99,31 @@ func (tg *TeleGom) Get(AvailableMethod string, parameter string) *api.Updates {
 	return &jsonResp
 }
 
-func SendMessage(update api.Update) {
-	fmt.Println(update.Message.ReplyToMessageID)
+type ServerResponse interface {
+	SendJson(tx string)
+}
+
+type ServerRS struct{}
+
+func (m *ServerRS) SendJson(tx string) {
+	fmt.Println(tx)
+}
+
+func (tg *TeleGom) Handle(command string, s func(ServerResponse, *api.Update)) {
+	tg.handlers[command] = s
+}
+
+func (tg *TeleGom) SendMessage(update api.Update) {
+
+	// Implement detector of commands
+	Hdr, ok := tg.handlers[update.Message.Text]
+	if ok {
+		if _, ok := tg.pendients[update.Message.ChatID]; ok {
+		}
+	}
+	// Implement Folow a Conversation
+
+	MT := &ServerRS{}
+
+	Hdr(MT, &update)
 }
