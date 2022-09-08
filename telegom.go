@@ -6,70 +6,47 @@ import (
 	"io"
 	"net/http"
 
-	"gitlab.com/vicmanbrile/telegram-golang-bot/api"
+	"telegram-golang-bot/server_response"
+
+	"telegram-golang-bot/api"
 )
-
-// CommandsPending
-// Can be canceled by two events
-// CancelForCommand(), CancelForTime()
-
-type CommandsPending struct {
-	Steps   int
-	Process int
-	Data    map[string]string
-}
 
 type TeleGom struct {
 	telegramToken string
-	pendients     map[string]CommandsPending
-	handlers      map[string]func(ServerResponse, *api.Update)
+	handlers      map[string]func(server_response.ServerResponse, *api.Update)
 }
 
 func InitTeleGom(TelegramTKN string) *TeleGom {
 	return &TeleGom{
 		telegramToken: TelegramTKN,
-		pendients:     map[string]CommandsPending{},
-		handlers:      map[string]func(ServerResponse, *api.Update){},
+		handlers:      map[string]func(server_response.ServerResponse, *api.Update){},
 	}
 }
 
 func (tg *TeleGom) Listen() {
 
 	var offSet int
-	var status bool
 
-	status = true
+	status := true
 
 	for status {
-		// Robot method ("getMe")
-		result := tg.get("getUpdates", fmt.Sprintf("?offset=%d", offSet))
+		result := tg.getUpdates(fmt.Sprintf("?offset=%d", offSet))
 
 		for _, v := range result.Update {
 			offSet = v.UpdateID + 1
 			fmt.Printf("Offset: %d\n", offSet)
-			tg.SendMessage(v)
+			tg.responseMessage(v)
 		}
 
 	}
 
 }
 
-func (tg *TeleGom) newPendient(command string, cp *CommandsPending) {
-	tg.pendients[command] = *cp
-}
+func (tg *TeleGom) getUpdates(parameter string) *api.Updates {
 
-func (tg *TeleGom) cancelPendient(key string) {
-	_, ok := tg.pendients[key]
-	if ok {
-		delete(tg.pendients, key)
-	}
-}
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/getUpdates%s", tg.telegramToken, parameter)
 
-func (tg *TeleGom) get(AvailableMethod string, parameter string) *api.Updates {
-
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s%s", tg.telegramToken, AvailableMethod, parameter)
-
-	// Http Cliend to String
+	// Http Client to String
 	Client := &http.Client{}
 
 	request, err := http.NewRequest("GET", url, nil)
@@ -89,7 +66,6 @@ func (tg *TeleGom) get(AvailableMethod string, parameter string) *api.Updates {
 		fmt.Println(err)
 	}
 	// Close Http Client
-
 	var jsonResp api.Updates
 	err = json.Unmarshal(Result, &jsonResp)
 
@@ -99,31 +75,22 @@ func (tg *TeleGom) get(AvailableMethod string, parameter string) *api.Updates {
 	return &jsonResp
 }
 
-type ServerResponse interface {
-	SendJson(tx string)
-}
-
-type ServerRS struct{}
-
-func (m *ServerRS) SendJson(tx string) {
-	fmt.Println(tx)
-}
-
-func (tg *TeleGom) Handle(command string, s func(ServerResponse, *api.Update)) {
-	tg.handlers[command] = s
-}
-
-func (tg *TeleGom) SendMessage(update api.Update) {
+func (tg *TeleGom) responseMessage(message api.Update) {
 
 	// Implement detector of commands
-	Hdr, ok := tg.handlers[update.Message.Text]
+	Hdr, ok := tg.handlers[message.Message.Text]
 	if ok {
-		if _, ok := tg.pendients[update.Message.ChatID]; ok {
-		}
+		fmt.Println("Is a command!")
 	}
-	// Implement Folow a Conversation
 
-	MT := &ServerRS{}
+	// Implement Follow a Conversation
+	WT := &server_response.ServerWT{
+		PrivadeMessage: message,
+	}
 
-	Hdr(MT, &update)
+	Hdr(WT, &message)
+}
+
+func (tg *TeleGom) Handle(command string, s func(server_response.ServerResponse, *api.Update)) {
+	tg.handlers[command] = s
 }
