@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -19,6 +20,15 @@ func main() {
 	var tlg = InitTeleGom(os.Getenv("TELEGRAM_TOKEN"))
 
 	tlg.Handle("/start", func(response server_response.ServerResponse, update *api.Update) {
+
+		photo, err := os.Open("./maquinados.png")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		defer photo.Close()
+
+		response.SendPhoto(photo)
 
 		response.SendText("Hola, ¿Como estas?")
 	})
