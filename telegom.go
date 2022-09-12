@@ -34,7 +34,6 @@ func (tg *TeleGom) Listen() {
 
 		for _, v := range result.Update {
 			offSet = v.UpdateID + 1
-			fmt.Printf("Offset: %d\n", offSet)
 			tg.responseMessage(v)
 		}
 
