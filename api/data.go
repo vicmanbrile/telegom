@@ -67,7 +67,7 @@ type (
 	}
 
 	Message struct {
-		ChatID                string          `json:"chat_id"`
+		ChatID                int             `json:"chat_id"`
 		From                  User            `json:"from"`
 		SenderChat            Chat            `json:"sender_Chat"`
 		Text                  string          `json:"text"`
