@@ -17,7 +17,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	var tlg = InitTeleGom(os.Getenv("TELEGRAM_TOKEN"))
+	var tlg = InitTeleGom(os.Getenv("TELEGRAM_TOKEN"), os.Getenv("MONGODB_CONNECTION"))
 
 	tlg.Handle("/start", func(response server_response.ServerResponse, update *api.Update) {
 

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
+	"telegram-golang-bot/database"
 	"telegram-golang-bot/server_response"
 
 	"telegram-golang-bot/api"
@@ -13,12 +15,14 @@ import (
 
 type TeleGom struct {
 	telegramToken string
+	mongoToken    string
 	handlers      map[string]func(server_response.ServerResponse, *api.Update)
 }
 
-func InitTeleGom(TelegramTKN string) *TeleGom {
+func InitTeleGom(TelegramTKN, MongoTKN string) *TeleGom {
 	return &TeleGom{
 		telegramToken: TelegramTKN,
+		mongoToken:    MongoTKN,
 		handlers:      map[string]func(server_response.ServerResponse, *api.Update){},
 	}
 }
@@ -77,17 +81,43 @@ func (tg *TeleGom) getUpdates(parameter string) *api.Updates {
 func (tg *TeleGom) responseMessage(message api.Update) {
 
 	// Implement detector of commands
-	Hdr, ok := tg.handlers[message.Message.Text]
-	if ok {
-		fmt.Println("Is a command!")
+	chatId := message.Message.From.ID
+
+	MGDB := database.NewMongoClientConversation(tg.mongoToken)
+	// defer MGDB.CancelConection()
+
+	CommandPendient, _ := MGDB.FindConversation(chatId)
+
+	mssg := message.Message.Text
+
+	i := strings.Index(mssg, "/")
+	if i == 0 {
+		Hdr, ok := tg.handlers[mssg]
+
+		if ok {
+			// Implement Follow a Conversation
+			WT := &server_response.ServerWT{
+				PrivadeMessage:  message,
+				CommandPendient: *CommandPendient,
+			}
+
+			Hdr(WT, &message)
+		}
+
+	} else if i <= -1 {
+		Hdr, ok := tg.handlers[CommandPendient.Command]
+
+		if ok {
+			// Implement Follow a Conversation
+			WT := &server_response.ServerWT{
+				PrivadeMessage:  message,
+				CommandPendient: *CommandPendient,
+			}
+
+			Hdr(WT, &message)
+		}
 	}
 
-	// Implement Follow a Conversation
-	WT := &server_response.ServerWT{
-		PrivadeMessage: message,
-	}
-
-	Hdr(WT, &message)
 }
 
 func (tg *TeleGom) Handle(command string, s func(server_response.ServerResponse, *api.Update)) {

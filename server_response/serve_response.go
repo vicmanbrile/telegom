@@ -16,7 +16,8 @@ type ServerResponse interface {
 }
 
 type ServerWT struct {
-	PrivadeMessage api.Update
+	PrivadeMessage  api.Update
+	CommandPendient database.CommandsPending
 }
 
 /*
@@ -60,7 +61,7 @@ func (srv *ServerWT) InitConversation(exists, create bool) {
 
 	MC := database.NewMongoClientConversation(os.Getenv("MONGODB_CONNECTION"))
 
-	ls, err := MC.FindConversation("6215c7dc38821f527b019d3e")
+	ls, err := MC.FindConversation(1)
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -43,12 +43,12 @@ func (mc *MongoConnection) CancelConection() {
 	mc.clientCancelContext()
 }
 
-func (mc *MongoConnection) FindConversation(id string) (d *CommandsPending, err error) {
+func (mc *MongoConnection) FindConversation(chat_id int) (d *CommandsPending, err error) {
 	var result bson.M
 
-	collect := mc.client.Database(mc.database).Collection(mc.collection)
+	collect := *mc.client.Database(mc.database).Collection(mc.collection)
 
-	err = collect.FindOne(mc.clientContext, bson.D{{Key: "_id", Value: id}}).Decode(&result)
+	err = collect.FindOne(mc.clientContext, bson.D{{Key: "chat_id", Value: chat_id}}).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
