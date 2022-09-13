@@ -23,7 +23,10 @@ func InitTeleGom(TelegramTKN, MongoTKN string) *TeleGom {
 	return &TeleGom{
 		telegramToken: TelegramTKN,
 		mongoToken:    MongoTKN,
-		handlers:      map[string]func(server_response.ServerResponse, *api.Update){},
+		handlers: map[string]func(server_response.ServerResponse, *api.Update){
+			"/help":            helpDefault,
+			"/recurseNotFount": recurseNotFountDefault,
+		},
 	}
 }
 
@@ -80,46 +83,62 @@ func (tg *TeleGom) getUpdates(parameter string) *api.Updates {
 
 func (tg *TeleGom) responseMessage(message api.Update) {
 
-	// Implement detector of commands
-	chatId := message.Message.From.ID
-
 	MGDB := database.NewMongoClientConversation(tg.mongoToken)
-	// defer MGDB.CancelConection()
-
-	CommandPendient, _ := MGDB.FindConversation(chatId)
+	defer MGDB.CancelConection()
 
 	mssg := message.Message.Text
-
+	// Implement detector of commands
 	i := strings.Index(mssg, "/")
 	if i == 0 {
 		Hdr, ok := tg.handlers[mssg]
 
 		if ok {
-			// Implement Follow a Conversation
 			WT := &server_response.ServerWT{
 				PrivadeMessage:  message,
-				CommandPendient: *CommandPendient,
 			}
 
 			Hdr(WT, &message)
 		}
+		// Falta un else
 
 	} else if i <= -1 {
-		Hdr, ok := tg.handlers[CommandPendient.Command]
+		CommandPendient, err := MGDB.FindConversation(message.Message.From.ID)
 
-		if ok {
-			// Implement Follow a Conversation
-			WT := &server_response.ServerWT{
-				PrivadeMessage:  message,
-				CommandPendient: *CommandPendient,
-			}
-
-			Hdr(WT, &message)
+		if err != nil || CommandPendient == nil {
+			fmt.Printf("Problema al buscar en base de datos: %s\n", err)
+			CommandPendient.Command = "/recurseNotFount"
 		}
+
+		// Implement Follow a Conversation
+		Hdr, _ := tg.handlers[CommandPendient.Command]
+
+		WT := &server_response.ServerWT{
+			PrivadeMessage:  message,
+			CommandPendient: *CommandPendient,
+		}
+
+		Hdr(WT, &message)
+
 	}
 
 }
 
 func (tg *TeleGom) Handle(command string, s func(server_response.ServerResponse, *api.Update)) {
-	tg.handlers[command] = s
+	switch command {
+	case "/help":
+		tg.handlers[command] = s
+	case "/recurseNotFount":
+		tg.handlers[command] = s
+	default:
+		tg.handlers[command] = s
+	}
+}
+
+// Handles help to user Default
+func helpDefault(response server_response.ServerResponse, message *api.Update) {
+	response.SendText("Use un comando")
+}
+
+func recurseNotFountDefault(response server_response.ServerResponse, message *api.Update) {
+	response.SendText("No se encontro su conversacion en nuestra base de datos")
 }

@@ -50,17 +50,17 @@ func (mc *MongoConnection) FindConversation(chat_id int) (d *CommandsPending, er
 
 	err = collect.FindOne(mc.clientContext, bson.D{{Key: "chat_id", Value: chat_id}}).Decode(&result)
 	if err != nil {
-		return nil, err
+		return &CommandsPending{}, err
 	}
 
 	bsonData, err := bson.Marshal(result)
 	if err != nil {
-		return nil, err
+		return &CommandsPending{}, err
 	}
 
 	err = bson.Unmarshal(bsonData, &d)
 	if err != nil {
-		return nil, err
+		return &CommandsPending{}, err
 	}
 
 	return
