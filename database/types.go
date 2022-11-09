@@ -2,7 +2,7 @@ package database
 
 import "time"
 
-type CommandsPending struct {
+type ConversationContinued struct {
 	ChatID  int       `bson:"chat_id"`
 	Steps   int       `bson:"steps"`
 	Command string    `bson:"command"`

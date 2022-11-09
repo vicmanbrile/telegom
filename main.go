@@ -33,5 +33,31 @@ func main() {
 		response.SendText("Hola, ¿Como estas?")
 	})
 
+	Listen(tlg)
+
 	tlg.Listen()
+}
+
+type ServerTelegom interface {
+	ServeToTelegram(server_response.ServerResponse, *api.Update)
+}
+
+// Se busca la manera de resivir y responder
+
+func Listen(s ServerTelegom) {
+
+	Maria := &server_response.ServerResponse{}
+
+	/*
+		ideas:
+		- Entregar ChatID para poder buscar en base de datos
+		- Todos los metodos deben de retornar error
+		- El packete no imprime nada y deja que el desarollador imprima en su consola o al usuario
+	*/
+
+	// Se cargan los metodos de envio
+	SS := &server_response.ServerWT{}
+
+	s.ServeToTelegram(SS, Maria)
+
 }

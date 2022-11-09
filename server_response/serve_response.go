@@ -16,24 +16,9 @@ type ServerResponse interface {
 }
 
 type ServerWT struct {
-	PrivadeMessage  api.Update
-	CommandPendient database.CommandsPending
+	PrivadeMessage        api.Update
+	ConversationContinued database.ConversationContinued
 }
-
-/*
-
-func (srv *ServerWT) newPending(command string, cp CommandsPending) {
-	srv.Pending[command] = cp
-}
-
-func (srv *ServerWT) cancelPending(key string) {
-	_, ok := srv.Pending[key]
-	if ok {
-		delete(srv.Pending, key)
-	}
-}
-
-*/
 
 func (srv *ServerWT) SendJson(tx string) {
 	fmt.Println(tx)
@@ -61,7 +46,7 @@ func (srv *ServerWT) InitConversation(exists, create bool) {
 
 	MC := database.NewMongoClientConversation(os.Getenv("MONGODB_CONNECTION"))
 
-	ls, err := MC.FindConversation(1)
+	ls, err := MC.FindConversation(srv.ConversationContinued.ChatID)
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -13,9 +13,11 @@ import (
 	"telegram-golang-bot/api"
 )
 
+type HandleTelegom func(server_response.ServerWT, *api.Update)
 type TeleGom struct {
 	telegramToken string
 	mongoToken    string
+	Commands      map[string]HandleTelegom
 	handlers      map[string]func(server_response.ServerResponse, *api.Update)
 }
 
@@ -94,7 +96,7 @@ func (tg *TeleGom) responseMessage(message api.Update) {
 
 		if ok {
 			WT := &server_response.ServerWT{
-				PrivadeMessage:  message,
+				PrivadeMessage: message,
 			}
 
 			Hdr(WT, &message)
@@ -102,19 +104,19 @@ func (tg *TeleGom) responseMessage(message api.Update) {
 		// Falta un else
 
 	} else if i <= -1 {
-		CommandPendient, err := MGDB.FindConversation(message.Message.From.ID)
+		ConversationContinued, err := MGDB.FindConversation(message.Message.From.ID)
 
-		if err != nil || CommandPendient == nil {
+		if err != nil || ConversationContinued == nil {
 			fmt.Printf("Problema al buscar en base de datos: %s\n", err)
-			CommandPendient.Command = "/recurseNotFount"
+			ConversationContinued.Command = "/recurseNotFount"
 		}
 
 		// Implement Follow a Conversation
-		Hdr, _ := tg.handlers[CommandPendient.Command]
+		Hdr, _ := tg.handlers[ConversationContinued.Command]
 
 		WT := &server_response.ServerWT{
-			PrivadeMessage:  message,
-			CommandPendient: *CommandPendient,
+			PrivadeMessage:        message,
+			ConversationContinued: *ConversationContinued,
 		}
 
 		Hdr(WT, &message)
@@ -123,7 +125,12 @@ func (tg *TeleGom) responseMessage(message api.Update) {
 
 }
 
-func (tg *TeleGom) Handle(command string, s func(server_response.ServerResponse, *api.Update)) {
+func (tg *TeleGom) Handle(command string, s HandleTelegom) {
+
+	if tg.Commands == nil {
+		tg.Commands = make(map[string]HandleTelegom)
+	}
+
 	switch command {
 	case "/help":
 		tg.handlers[command] = s
@@ -132,6 +139,12 @@ func (tg *TeleGom) Handle(command string, s func(server_response.ServerResponse,
 	default:
 		tg.handlers[command] = s
 	}
+}
+
+func (tg *TeleGom) ServeToTelegram(w server_response.ServerResponse, r *api.Update) {
+	s, _ := tg.Commands[r.EditedMessage.Text]
+
+	s(w, r)
 }
 
 // Handles help to user Default

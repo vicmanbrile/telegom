@@ -43,24 +43,24 @@ func (mc *MongoConnection) CancelConection() {
 	mc.clientCancelContext()
 }
 
-func (mc *MongoConnection) FindConversation(chat_id int) (d *CommandsPending, err error) {
+func (mc *MongoConnection) FindConversation(chat_id int) (d *ConversationContinued, err error) {
 	var result bson.M
 
 	collect := *mc.client.Database(mc.database).Collection(mc.collection)
 
 	err = collect.FindOne(mc.clientContext, bson.D{{Key: "chat_id", Value: chat_id}}).Decode(&result)
 	if err != nil {
-		return &CommandsPending{}, err
+		return &ConversationContinued{}, err
 	}
 
 	bsonData, err := bson.Marshal(result)
 	if err != nil {
-		return &CommandsPending{}, err
+		return &ConversationContinued{}, err
 	}
 
 	err = bson.Unmarshal(bsonData, &d)
 	if err != nil {
-		return &CommandsPending{}, err
+		return &ConversationContinued{}, err
 	}
 
 	return
