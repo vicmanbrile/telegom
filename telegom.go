@@ -54,13 +54,13 @@ func (tg *TeleGom) ServeToTelegram(w ServerResponse, r *api.Update) {
 
 		if ok {
 			res := &response.Response{
-				ChatID: r.Message.ChatID,
+				FromID: r.Message.From.ID,
 			}
 
 			handler(res, r)
 		} else {
 			res := &response.Response{
-				ChatID: r.Message.ChatID,
+				FromID: r.Message.From.ID,
 			}
 
 			tg.handlers["/help"](res, r)
@@ -78,7 +78,7 @@ func (tg *TeleGom) ServeToTelegram(w ServerResponse, r *api.Update) {
 		Hdr, _ := tg.handlers[ConversationContinued.Command]
 
 		WT := &response.Response{
-			ChatID: *&r.Message.ChatID,
+			FromID: *&r.Message.From.ID,
 		}
 
 		Hdr(WT, r)

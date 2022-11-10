@@ -9,7 +9,7 @@ import (
 )
 
 type Response struct {
-	ChatID int
+	FromID int
 }
 
 func (srv *Response) SendJson(tx string) {
@@ -23,7 +23,7 @@ func (srv *Response) SendText(tx string) {
 func (srv *Response) SendPhoto(i *os.File) {
 	items.Send(&items.Photo{
 		Photo:  i,
-		ChatID: srv.ChatID,
+		FromID: srv.FromID,
 	})
 
 }
@@ -38,7 +38,7 @@ func (srv *Response) InitConversation(exists, create bool) {
 
 	MC := database.NewMongoClientConversation(os.Getenv("MONGODB_CONNECTION"))
 
-	ls, err := MC.FindConversation(srv.ChatID)
+	ls, err := MC.FindConversation(srv.FromID)
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -14,7 +14,7 @@ type Photo struct {
 	Config struct {
 		URL string
 	}
-	ChatID int
+	FromID int
 	Photo  *os.File
 }
 
@@ -38,7 +38,7 @@ func (sp *Photo) Request() (*http.Request, error) {
 func (sp *Photo) buildURL() {
 	var Parameters []Element
 	{
-		chatId := Element{Key: "chat_id", Value: sp.ChatID}
+		chatId := Element{Key: "chat_id", Value: sp.FromID}
 		Parameters = []Element{chatId}
 	}
 

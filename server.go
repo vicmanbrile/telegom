@@ -33,8 +33,9 @@ func Listen(s ServerTelegom) {
 			offSet = update.UpdateID + 1
 
 			// Se cargan los metodos de envio
+
 			clientMessage := &response.Response{
-				ChatID: update.Message.ChatID,
+				FromID: update.Message.From.ID,
 			}
 
 			s.ServeToTelegram(clientMessage, &update)

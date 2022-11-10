@@ -28,7 +28,7 @@ func main() {
 
 	tlg.Handle("/start", func(response ServerResponse, update *api.Update) {
 
-		photo, err := os.Open("./maquinados.png")
+		photo, err := os.Open("./maquinados.jpg")
 		if err != nil {
 			fmt.Println(err)
 		}
