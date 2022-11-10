@@ -35,8 +35,41 @@ type (
 		AddToAttachmentMenu     bool   `json:"added_to_attachment_menu"`
 	}
 
+	Chat struct {
+		ID                 int       `json:"id"`
+		Type               string    `json:"type"`
+		Title              string    `json:"title"`
+		Username           string    `json:"username"`
+		FirstName          string    `json:"first_name"`
+		LastName           string    `json:"last_name"`
+		Photo              ChatPhoto `json:"photo"`
+		Bio                string    `json:"bio"`
+		HasPrivateForwards bool      `json:"has_private_forwards"`
+		JoinToSendMessage  bool      `json:"join_to_send_messages"`
+		JoinByRequest      bool      `json:"join_by_request"`
+		Description        string    `json:"description"`
+		InviteLink         string    `json:"invite_link"`
+		// PinnedMessage      Message         `json:"pinned_message"`
+		Permissions ChatPermissions `json:"permissions"`
+	}
+
+	ChatPhoto struct {
+		SmallFileID       string `json:"small_file_id"`
+		SmallFileUniqueID string `json:"small_file_unique_id"`
+		BigFileId         string `json:"big_file_id"`
+		BigFileUniqueID   string `json:"big_file_unique_id"`
+	}
+
+	ChatPermissions struct {
+		CanSendMessages      bool
+		CanSendMediaMessages bool
+		CanSendPoll          bool
+	}
+
 	Message struct {
-		ChatID                string          `json:"chat_id"`
+		ChatID                int             `json:"chat_id"`
+		From                  User            `json:"from"`
+		SenderChat            Chat            `json:"sender_Chat"`
 		Text                  string          `json:"text"`
 		ParseMode             string          `json:"parse_mode"`
 		Entities              []MessageEntity `json:"entities"`
