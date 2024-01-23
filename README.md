@@ -1,4 +1,23 @@
-# Telegom -  Telegram Bot  
-Telegom es un pequeño proyecto para armar bots para Telegram con la filosofía de función Handle de [net/http](https://pkg.go.dev/net/http#Handle), la facilidad de añadir lógica más compleja a nuestros robots con una implementación sencilla es objetivo del repositorio
+# Telegom
+Telegram bot written in Go
 
-[Telegram Bot API v6.1](https://core.telegram.org/bots/api#june-20-2022])
+### Install Telegom
+```bash
+go get -u github.com/vicmanbrile/telegram-golang-bot
+```
+
+### Quick start
+
+```go
+package main
+
+func main(){
+	TLG := telegom.InitTelegom("TELEGRAM_BOT_TOKEN", "MONGODB_URL_CONNECTION")
+	
+	// Add a command telegram /start
+	
+	TLG.Handle("/start",  func(response server_response.ServerResponse, update *api.Update) {
+		response.SendText("Welcome to my telegram bot written in telegom")
+	})
+}
+```

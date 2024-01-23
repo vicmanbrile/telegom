@@ -1,101 +1,93 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
+	"strings"
+	"telegram-golang-bot/database"
+	"telegram-golang-bot/response"
 
-	"gitlab.com/vicmanbrile/telegram-golang-bot/api"
+	"telegram-golang-bot/api"
 )
 
-// CommandsPending
-// Can be canceled by two events
-// CancelForCommand(), CancelForTime()
-
-type CommandsPending struct {
-	Steps   int
-	Process int
-}
+type HandleTelegom func(ServerResponse, *api.Update)
 
 type TeleGom struct {
-	TelegramToken string
-	Pendients     map[string]CommandsPending
+	handlers map[string]HandleTelegom
 }
 
-func InitTeleGom(TelegramTKN string) *TeleGom {
+func InitTeleGom() *TeleGom {
 	return &TeleGom{
-		TelegramToken: TelegramTKN,
-		Pendients:     map[string]CommandsPending{},
+		handlers: map[string]HandleTelegom{
+			"/help":            helpDefault,
+			"/recurseNotFount": recurseNotFountDefault,
+		},
 	}
 }
 
-func (tg *TeleGom) Listen() {
+func (tg *TeleGom) Handle(command string, s HandleTelegom) {
 
-	var offSet int
-	var status bool
+	if tg.handlers == nil {
+		tg.handlers = make(map[string]HandleTelegom)
+	}
 
-	status = true
+	switch command {
+	case "/help":
+		tg.handlers[command] = s
+	case "/recurseNotFount":
+		tg.handlers[command] = s
+	default:
+		tg.handlers[command] = s
+	}
 
-	for status {
-		// Robot method ("getMe")
-		result := tg.Get("getUpdates", fmt.Sprintf("?offset=%d", offSet))
+}
 
-		for _, v := range result.Update {
-			offSet = v.UpdateID + 1
-			fmt.Printf("Offset: %d\n", offSet)
-			SendMessage(v)
+func (tg *TeleGom) ServeToTelegram(w ServerResponse, r *api.Update) {
+
+	MGDB := database.NewMongoClientConversation(mongoToken)
+	defer MGDB.CancelConection()
+
+	mssg := r.Message.Text
+	// Implement detector of commands
+	indexOfChater := strings.Index(mssg, "/")
+	if indexOfChater == 0 {
+		handler, ok := tg.handlers[mssg]
+
+		if ok {
+			res := &response.Response{
+				FromID: r.Message.From.ID,
+			}
+
+			handler(res, r)
+		} else {
+			res := &response.Response{
+				FromID: r.Message.From.ID,
+			}
+
+			tg.handlers["/help"](res, r)
 		}
 
+	} else if indexOfChater <= -1 {
+		ConversationContinued, err := MGDB.FindConversation(r.Message.From.ID)
+
+		if err != nil || ConversationContinued == nil {
+			fmt.Printf("Problema al buscar en base de datos: %s\n", err)
+			ConversationContinued.Command = "/recurseNotFount"
+		}
+
+		// Implement Follow a Conversation
+		Hdr, _ := tg.handlers[ConversationContinued.Command]
+
+		WT := &response.Response{
+			FromID: *&r.Message.From.ID,
+		}
+
+		Hdr(WT, r)
+
+	} else {
+		// Si el "/" se encuentra en el mensaje eg.{"Na/Sodio", "Amigo/Friend"}
+		s, _ := tg.handlers[r.EditedMessage.Text]
+
+		s(w, r)
 	}
 
-}
-
-func (tg *TeleGom) NewPendient(command string, cp *CommandsPending) {
-	tg.Pendients[command] = *cp
-}
-
-func (tg *TeleGom) CancelPendient(key string) {
-	_, ok := tg.Pendients[key]
-	if ok {
-		delete(tg.Pendients, key)
-	}
-}
-
-func (tg *TeleGom) Get(AvailableMethod string, parameter string) *api.Updates {
-
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s%s", tg.TelegramToken, AvailableMethod, parameter)
-
-	// Http Cliend to String
-	Client := &http.Client{}
-
-	request, err := http.NewRequest("GET", url, nil)
-	if err != err {
-		fmt.Println(err)
-	}
-
-	response, err := Client.Do(request)
-	if err != err {
-		fmt.Println(err)
-	}
-
-	defer response.Body.Close()
-
-	Result, err := io.ReadAll(response.Body)
-	if err != err {
-		fmt.Println(err)
-	}
-	// Close Http Client
-
-	var jsonResp api.Updates
-	err = json.Unmarshal(Result, &jsonResp)
-
-	if err != err {
-		fmt.Println(err)
-	}
-	return &jsonResp
-}
-
-func SendMessage(update api.Update) {
-	fmt.Println(update.Message.ReplyToMessageID)
 }

@@ -1,10 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
+	"telegram-golang-bot/api"
+
 	"github.com/joho/godotenv"
+)
+
+var (
+	telegramToken string
+	mongoToken    string
 )
 
 func main() {
@@ -13,7 +21,25 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	var tlg = InitTeleGom(os.Getenv("TELEGRAM_TOKEN"))
+	telegramToken = os.Getenv("TELEGRAM_TOKEN")
+	mongoToken = os.Getenv("MONGODB_CONNECTION")
 
-	tlg.Listen()
+	var tlg = InitTeleGom()
+
+	tlg.Handle("/start", func(response ServerResponse, update *api.Update) {
+
+		photo, err := os.Open("./maquinados.jpg")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		defer photo.Close()
+
+		response.SendPhoto(photo)
+
+		response.SendText("Hola, ¿Como estas?")
+	})
+
+	Listen(tlg)
+
 }
