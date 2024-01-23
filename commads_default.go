@@ -1,6 +1,6 @@
 package main
 
-import "telegram-golang-bot/api"
+import "telegom/api"
 
 // Handles help to user Default
 func helpDefault(response ServerResponse, message *api.Update) {

@@ -3,7 +3,7 @@ Telegram bot written in Go
 
 ### Install Telegom
 ```bash
-go get -u github.com/vicmanbrile/telegram-golang-bot
+go get -u github.com/vicmanbrile/telegom
 ```
 
 ### Quick start

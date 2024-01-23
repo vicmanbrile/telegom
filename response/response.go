@@ -3,9 +3,9 @@ package response
 import (
 	"fmt"
 	"os"
-	items "telegram-golang-bot/response/items"
+	items "telegom/response/items"
 
-	"telegram-golang-bot/database"
+	"telegom/database"
 )
 
 type Response struct {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"telegram-golang-bot/api"
+	"telegom/api"
 
 	"github.com/joho/godotenv"
 )

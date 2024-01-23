@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"strings"
-	"telegram-golang-bot/database"
-	"telegram-golang-bot/response"
+	"telegom/database"
+	"telegom/response"
 
-	"telegram-golang-bot/api"
+	"telegom/api"
 )
 
 type HandleTelegom func(ServerResponse, *api.Update)

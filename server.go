@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"telegram-golang-bot/api"
-	"telegram-golang-bot/response"
+	"telegom/api"
+	"telegom/response"
 )
 
 type ServerResponse interface {

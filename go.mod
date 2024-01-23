@@ -1,4 +1,4 @@
-module telegram-golang-bot
+module telegom
 
 go 1.17
 
